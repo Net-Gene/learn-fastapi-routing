@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
-from dtos.users import UpdateUserDto, UserDto
+from dtos.users import UpdateUserDto, UserDto, AddUserReq, LoginReq
 from mapper.mapper import ResponseMapper
+from response_handlers.user_res_handler import UserResResponseHandler
 from services.service_factory import UserService
 
 router = APIRouter(prefix="/api/users", tags=['users'])
@@ -29,4 +30,17 @@ async def update_user(user_id: int, service: UserService, req_data: UpdateUserDt
     user = service.update_user(user_id, req_data)
     if user is None:
         raise HTTPException(detail="User not found", status_code=404)
+    return mapper.map('user_dto', user)
+
+
+@router.post('/')
+def create_user(user_service: UserService, req: AddUserReq,
+                mapper: ResponseMapper) -> UserDto:
+    user = user_service.create(req)
+    return mapper.map('user_dto', user)
+
+
+@router.post('/')
+def login(user_service: UserService, req: LoginReq, mapper: ResponseMapper) -> UserDto:
+    user = user_service.create(req)
     return mapper.map('user_dto', user)
