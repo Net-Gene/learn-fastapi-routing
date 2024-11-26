@@ -16,9 +16,10 @@ class AddUserReq(BaseModel):
     password: str
 
 
-class LoginReq(BaseModel):
+class LoginReqDto(BaseModel):
     username: str
     password: str
 
-class LoginRes(BaseModel):
+
+class LoginResDto(BaseModel):
     token: str
