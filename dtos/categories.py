@@ -8,4 +8,7 @@ class CategoryDto(BaseModel):
     name: str
     description: str
 
+    # Tämä on tuoteluettelo, ja se on valinnainen
+    products: Optional[List[ProductDto]] = None  
+
 

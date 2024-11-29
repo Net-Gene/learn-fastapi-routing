@@ -15,3 +15,8 @@ async def get_categories(service: CategoryService, mapper: ResponseMapper):
     return mapper.map('category_dto', categories)
 
 
+@router.get('/get_products_by_category')
+async def get_categories_with_products(service: CategoryService, mapper: ResponseMapper):
+    categories = service.get_all_categories_with_products()
+
+    return mapper.map('category_dto', categories)
