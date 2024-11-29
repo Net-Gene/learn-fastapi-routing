@@ -1,6 +1,8 @@
 from typing import Annotated
 from fastapi.params import Depends
 import models
+from services.category_sa_service import CategorySaService
+from services.category_service_base import CategoryServiceBase
 from services.product_sa_service import ProductSaService
 from services.product_service_base import ProductServiceBase
 from services.user_sa_service import UserSaService
@@ -13,5 +15,12 @@ def init_user_service(context: models.Db):
 def init_product_service(context: models.Db):
     return ProductSaService(context)
 
+def init_category_service(context: models.Db):
+    return CategorySaService(context)
+
+
+CategoryService = Annotated[CategoryServiceBase, Depends(init_category_service)]
+
 UserService = Annotated[UserServiceBase, Depends(init_user_service)]
+
 ProductService = Annotated[ProductServiceBase, Depends(init_product_service)]
