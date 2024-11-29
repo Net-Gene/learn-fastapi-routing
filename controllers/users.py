@@ -8,14 +8,14 @@ from tools.token_factory import AppToken
 router = APIRouter(prefix="/api/users", tags=['users'])
 
 
-@router.get('/Kaikkien käyttäjien listaus')
+@router.get('/')
 async def get_users(service: UserService, mapper: ResponseMapper):
     users = service.get_all()
 
     return mapper.map('user_dto', users)
 
 
-@router.get('/Käyttäjien listaus id:n perusteella')
+@router.get('/get_user_by_id')
 async def get_user(user_id: int, service: UserService, mapper: ResponseMapper):
     user = service.get_by_id(user_id)
 
