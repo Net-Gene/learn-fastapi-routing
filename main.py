@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from starlette.requests import Request
 
-from controllers import users
+from controllers import products, users
 from custom_exceptions.not_found_exception import NotFoundexception
 from custom_exceptions.username_taken_exception import UsernameTakenException
 
@@ -19,3 +19,5 @@ async def not_found(request: Request, exc: NotFoundexception):
 
 
 app.include_router(users.router)
+
+app.include_router(products.router)

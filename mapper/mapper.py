@@ -2,14 +2,13 @@ from typing import Annotated
 
 from fastapi.params import Depends
 
+from dtos.products import ProductDto
 from dtos.users import UserDto
 from mapper.base_profile import BaseProfile
-from mapper.profile_factory import create_user_profile
+from mapper.profile_factory import create_product_profile, create_user_profile
 
 
 class Mapper:
-    # Mapper-luokka sisältää kaikki profile-objektit, sekä map-metodin
-    # jossa käytetään profiilikohtaista map / map_list-metodia
     def __init__(self, profiles: dict[str: BaseProfile]) -> None:
         self.profiles = profiles
 
@@ -23,15 +22,12 @@ class Mapper:
             return self.profiles[_type].map(data)
 
 
-# factory mapperin luomiseen
 def create_mapper() -> Mapper:
-    # kun sinulle tulee lisää profiileja, lisää ne tähän
     profiles = {
-        # UserDto no tietotyyppi, johon tällä profiililla (user_dto) pystyy mäppäämään
+        'product_dto': create_product_profile(ProductDto),
         'user_dto': create_user_profile(UserDto)
     }
     return Mapper(profiles)
 
 
-# luodaan Mapperille typealias, jota voidaan käyttää controllerissa
 ResponseMapper = Annotated[Mapper, Depends(create_mapper)]
