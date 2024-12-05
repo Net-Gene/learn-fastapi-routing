@@ -24,3 +24,4 @@ class UserServiceBase(abc.ABC):
     @abc.abstractmethod
     def login(self, req: LoginReqDto, token: TokenToolBase) -> str:
         raise NotImplementedError()
+

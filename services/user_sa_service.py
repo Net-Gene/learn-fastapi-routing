@@ -16,10 +16,12 @@ class UserSaService(UserServiceBase):
         self.context = context
 
     def get_all(self) -> List[models.Users]:
-        return self.context.query(models.Users).all()
+        user = self.context.query(models.Users).all()
+        return user
 
     def get_by_id(self, user_id) -> models.Users:
-        return self.context.query(models.Users).filter(models.Users.Id == user_id).first()
+        user = self.context.query(models.Users).filter(models.Users.Id == int(user_id)).first()
+        return user
 
     def update_user(self, user_id: int, req_data: UpdateUserDto):
         user = self.context.query(models.Users).filter(models.Users.Id == user_id).first()
@@ -56,7 +58,7 @@ class UserSaService(UserServiceBase):
 
         if bcrypt.checkpw(req.password.encode('utf-8'), user.HashedPassword):
             return token.create_token(
-                {'sub': user.Id, 'username': user.UserName, 'iat': datetime.now().timestamp(),
+                {'sub': str(user.Id), 'username': user.UserName, 'iat': datetime.now().timestamp(),
                  'exp': datetime.now().timestamp() + (3600 * 24 * 7)})
         raise NotFoundexception('user not found')
 

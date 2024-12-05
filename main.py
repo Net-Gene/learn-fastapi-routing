@@ -3,19 +3,30 @@ from starlette.requests import Request
 
 from controllers import categories, products, users
 from custom_exceptions.not_found_exception import NotFoundexception
+from custom_exceptions.unauthorized_exception import UnauthorizedException
 from custom_exceptions.username_taken_exception import UsernameTakenException
 
 app = FastAPI()
 
 
 @app.exception_handler(NotFoundexception)
-async def not_found(request: Request, exc: NotFoundexception):
-    raise HTTPException(status_code=404, detail=str(exc))
+async def not_found_exception_handler(request, exception):
+    raise HTTPException(detail=str(exception), status_code=404)
 
 
 @app.exception_handler(UsernameTakenException)
-async def not_found(request: Request, exc: NotFoundexception):
-    raise HTTPException(status_code=400, detail=str(exc))
+async def username_taken_exception_handler(request, exception):
+    raise HTTPException(detail=str(exception), status_code=400)
+
+
+@app.exception_handler(UnauthorizedException)
+async def unauthorized_exception_handler(request, exception):
+    raise HTTPException(detail=str(exception), status_code=401)
+
+
+@app.exception_handler(UnauthorizedException)
+async def forbidden_exception_handler(request, exception):
+    raise HTTPException(detail=str(exception), status_code=403)
 
 
 app.include_router(users.router)
