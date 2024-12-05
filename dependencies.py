@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from fastapi import HTTPException, Depends
-from starlette import status
+from fastapi import Depends
 from starlette.requests import Request
 
 import models
@@ -25,7 +24,6 @@ def get_logged_in_user(user_service: UserService, token: AppToken, req: Request)
         raise UnauthorizedException()
     claims = token.validate_token(header_parts[1])
 
-    # tämä metodi puuttuu user_sevicesta
     logged_in_user = user_service.get_by_id(claims['sub'])
 
     if logged_in_user is None:

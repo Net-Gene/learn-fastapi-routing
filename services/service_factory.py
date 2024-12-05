@@ -12,8 +12,10 @@ from services.user_service_base import UserServiceBase
 def init_user_service(context: models.Db):
     return UserSaService(context)
 
+
 def init_product_service(context: models.Db):
     return ProductSaService(context)
+
 
 def init_category_service(context: models.Db):
     return CategorySaService(context)

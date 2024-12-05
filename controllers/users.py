@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
 
 from custom_exceptions.username_taken_exception import UsernameTakenException
 from dependencies import LoggedInUser, require_admin
@@ -9,10 +10,14 @@ from tools.token_factory import AppToken
 
 router = APIRouter(prefix="/api/users", tags=['users'])
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
+
 
 @router.get('/',
             # Vain admin voi käyttää tätä routea, jos tämä rivi on aktiivinen
             # dependencies=[Depends(require_admin)]
+
+            dependencies=[Depends(oauth2_scheme)]
             )
 async def get_users(service: UserService, mapper: ResponseMapper):
     # user_dtos = []

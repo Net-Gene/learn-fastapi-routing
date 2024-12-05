@@ -4,7 +4,7 @@ from typing import List
 import bcrypt
 
 import models
-from custom_exceptions.not_found_exception import NotFoundexception
+from custom_exceptions.not_found_exception import NotFoundException
 from custom_exceptions.username_taken_exception import UsernameTakenException
 from dtos.users import UpdateUserDto, AddUserReq, LoginReqDto
 from services.user_service_base import UserServiceBase
@@ -52,13 +52,14 @@ class UserSaService(UserServiceBase):
         return user
 
     def login(self, req: LoginReqDto, token: TokenToolBase) -> str:
+        print(f"Login request received: {req}")
         user = self.context.query(models.Users).filter(models.Users.UserName == req.username).first()
         if user is None:
-            raise NotFoundexception('user not found')
+            raise NotFoundException('user not found')
 
         if bcrypt.checkpw(req.password.encode('utf-8'), user.HashedPassword):
             return token.create_token(
                 {'sub': str(user.Id), 'username': user.UserName, 'iat': datetime.now().timestamp(),
                  'exp': datetime.now().timestamp() + (3600 * 24 * 7)})
-        raise NotFoundexception('user not found')
+        raise NotFoundException('user not found')
 
