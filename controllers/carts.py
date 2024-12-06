@@ -37,7 +37,7 @@ async def delete_from_cart(service: OrderService, itemid: int, account: LoggedIn
     return result
 
 
-@router.put('/items/{itemid}', dependencies=[Depends(oauth2_scheme)])
+@router.patch('/items/{itemid}', dependencies=[Depends(oauth2_scheme)])
 @version(1, 0)
 async def update_product_in_cart(service: OrderService, itemid: int, req: UpdateOrderReqDto, account: LoggedInUser):
     result = service.update_order(itemid, req, account)
