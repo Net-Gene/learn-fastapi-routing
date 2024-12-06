@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, Depends
 
-from dependencies import oauth2_scheme
-from dtos.orders import OrderDto, OrderReqDto
+from dependencies import oauth2_scheme, LoggedInUser
+from dtos.orders import OrderDto, OrderReqDto, DeleteOrderReqDto
 from mapper.mapper import ResponseMapper
 from services.service_factory import ProductService, OrderService
 
@@ -27,3 +27,11 @@ async def add_to_cart(service: OrderService, mapper: ResponseMapper, req: OrderR
     order = service.add_to(req)
 
     return mapper.map('order_dto', order)
+
+
+@router.delete('/items/{itemid}', dependencies=[Depends(oauth2_scheme)])
+@version(1, 0)
+async def delete_from_cart(service: OrderService, mapper: ResponseMapper, itemid: int, account: LoggedInUser):
+    result = service.delete(itemid, account)
+
+    return result

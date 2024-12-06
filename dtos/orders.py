@@ -24,5 +24,10 @@ class OrderReqDto(BaseModel):
     user_id: int
 
 
+class DeleteOrderReqDto(BaseModel):
+    order_id: int
+    product_id: int
+
+
 class UpdateOrderDto(BaseModel):
     state: str

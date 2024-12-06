@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from starlette.requests import Request
 
 from controllers import categories, products, users, orders, carts

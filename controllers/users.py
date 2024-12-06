@@ -10,6 +10,7 @@ from tools.token_factory import AppToken
 
 router = APIRouter(prefix="/api/users", tags=['users'])
 
+
 @router.get('/',
             # Vain admin voi käyttää tätä routea, jos tämä rivi on aktiivinen
             # dependencies=[Depends(require_admin)]
