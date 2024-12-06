@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
+from dependencies import oauth2_scheme
 from dtos.orders import OrderDto, OrderReqDto
 from mapper.mapper import ResponseMapper
 from services.service_factory import ProductService, OrderService
@@ -20,7 +21,7 @@ async def show_cart(service: OrderService,
     return mapper.map('order_dto', order)
 
 
-@router.post('/items')
+@router.post('/items', dependencies=[Depends(oauth2_scheme)])
 @version(1, 0)
 async def add_to_cart(service: OrderService, mapper: ResponseMapper, req: OrderReqDto):
     order = service.add_to(req)

@@ -9,6 +9,10 @@ from custom_exceptions.unauthorized_exception import UnauthorizedException
 from services.service_factory import UserService
 from tools.token_factory import AppToken
 
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
+
 
 def get_logged_in_user(user_service: UserService, token: AppToken, req: Request) -> models.Users:
     token_from_header = req.headers.get('Authorization')
