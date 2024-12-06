@@ -12,11 +12,6 @@ engine = create_engine('sqlite:///ecommerce.db')
 Session = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
-
-
-
-
-
 class Users(Base):
     __tablename__ = 'Users'
 
@@ -27,11 +22,10 @@ class Users(Base):
     HashedPassword = mapped_column(LargeBinary, nullable=False)
 
     Categories: Mapped[List['Categories']] = relationship('Categories', uselist=True, back_populates='Users_')
-    Orders: Mapped[List['Orders']] = relationship('Orders', uselist=True, foreign_keys='[Orders.CustomerId]', back_populates='Users_')
-    Orders_: Mapped[List['Orders']] = relationship('Orders', uselist=True, foreign_keys='[Orders.HandlerId]', back_populates='Users1')
-
-
-
+    Orders: Mapped[List['Orders']] = relationship('Orders', uselist=True, foreign_keys='[Orders.CustomerId]',
+                                                  back_populates='Users_')
+    Orders_: Mapped[List['Orders']] = relationship('Orders', uselist=True, foreign_keys='[Orders.HandlerId]',
+                                                   back_populates='Users1')
 
 
 class Categories(Base):
@@ -67,7 +61,8 @@ class Orders(Base):
 
     Users_: Mapped['Users'] = relationship('Users', foreign_keys=[CustomerId], back_populates='Orders')
     Users1: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[HandlerId], back_populates='Orders_')
-    OrdersProducts: Mapped[List['OrdersProducts']] = relationship('OrdersProducts', uselist=True, back_populates='Orders_')
+    OrdersProducts: Mapped[List['OrdersProducts']] = relationship('OrdersProducts', uselist=True,
+                                                                  back_populates='Orders_')
 
 
 class Products(Base):
@@ -83,7 +78,8 @@ class Products(Base):
     Description = mapped_column(Text)
 
     Categories_: Mapped['Categories'] = relationship('Categories', back_populates='Products')
-    OrdersProducts: Mapped[List['OrdersProducts']] = relationship('OrdersProducts', uselist=True, back_populates='Products_')
+    OrdersProducts: Mapped[List['OrdersProducts']] = relationship('OrdersProducts', uselist=True,
+                                                                  back_populates='Products_')
 
 
 class OrdersProducts(Base):
@@ -101,7 +97,6 @@ class OrdersProducts(Base):
     Products_: Mapped['Products'] = relationship('Products', back_populates='OrdersProducts')
 
 
-
 def get_db_conn():
     session = None
     try:
@@ -109,10 +104,6 @@ def get_db_conn():
         yield session
     finally:
         session.close()
-
-
-
-
 
 
 Db = Annotated[Session, Depends(get_db_conn)]

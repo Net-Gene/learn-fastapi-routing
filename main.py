@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from starlette.requests import Request
 
-from controllers import categories, products, users
+from controllers import categories, products, users, orders, carts
 from custom_exceptions.forbidden_exception import ForbiddenException
+from custom_exceptions.missing_field_exception import MissingFieldException
 from custom_exceptions.not_found_exception import NotFoundException
 from custom_exceptions.unauthorized_exception import UnauthorizedException
 from custom_exceptions.username_taken_exception import UsernameTakenException
@@ -30,6 +31,11 @@ async def forbidden_exception_handler(request, exception):
     raise HTTPException(detail=str(exception), status_code=403)
 
 
+@app.exception_handler(MissingFieldException)
+async def missing_field_exception_handler(request, exception):
+    raise HTTPException(detail=str(exception), status_code=404)
+
+
 @app.middleware('http')
 async def log_urls(request: Request, call_next):
     print("logging", request.url)
@@ -41,3 +47,7 @@ app.include_router(users.router)
 app.include_router(products.router)
 
 app.include_router(categories.router)
+
+app.include_router(orders.router)
+
+app.include_router(carts.router)

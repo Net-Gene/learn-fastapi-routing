@@ -15,16 +15,20 @@ class CategorySaService(CategoryServiceBase):
         return self.context.query(Categories).all()
     
     def get_all_categories_with_products(self, page: int) -> List[Categories]:
-        # The page parameter is used to paginate the products, not the categories themselves
-        skip = (page - 1) * 2  # Calculate the offset for products
+        # Sivuparametria käytetään tuotteiden sivuttamiseen, ei itse luokkiin
 
-        # Get all categories (no pagination on categories)
+        skip = (page - 1) * 2  # Laske tuotteiden offset
+
+
+        # Hae kaikki luokat (ei luokkien sivutusta)
+
         categories = self.context.query(Categories).all()
 
         categories_with_products = []
 
         for category in categories:
-            # Paginate the products for each category (limit 2 products per page)
+            # Sivuttele kunkin luokan tuotteet (enintään 2 tuotetta sivulla)
+
             products = self.context.query(Products).filter(Products.CategoryId == category.Id).offset(skip).limit(2).all()
 
             categories_with_products.append(

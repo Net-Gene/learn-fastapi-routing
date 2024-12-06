@@ -19,12 +19,15 @@ class ProductSaService(ProductServiceBase):
         :param-haku: merkkijono, jonka avulla voit etsiä tuotteita nimellä (valinnainen).
         :return: Luettelo määritetyn sivun tuotteista.
         """
-        
-        # Build the base query
+
+        # Rakenna peruskysely
+
         query: Query = self.context.query(Products)
 
-        # Implement pagination
+        # Toteuta sivutus
+
         query = query.offset((page - 1) * 2).limit(2)
 
-        # Execute the query and return the results
+        # Suorita kysely ja palauta tulokset
+
         return query.all()

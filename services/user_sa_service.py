@@ -36,6 +36,7 @@ class UserSaService(UserServiceBase):
         user_exists = self.context.query(models.Users).filter(models.Users.UserName == req.username).first()
         if user_exists is not None:
             # tätä exception tyyppiä meillä ei vielä ole
+
             raise UsernameTakenException('username already taken')
         user = models.Users(
             UserName=req.username,
@@ -46,6 +47,7 @@ class UserSaService(UserServiceBase):
         # bcyrptia käytettäessä meidän ei itse tarvitse tallentaa saltia
         # erilliseen taulun sarakkeeseen,
         # bcrypt huolehtii tästä itse
+
         user.PasswordSalt = ''.encode('utf-8')
         self.context.add(user)
         self.context.commit()
