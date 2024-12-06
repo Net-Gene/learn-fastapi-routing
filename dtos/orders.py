@@ -32,3 +32,7 @@ class DeleteOrderReqDto(BaseModel):
 class UpdateOrderReqDto(BaseModel):
     product_id: int
     unit_count: int
+
+
+class OrderingReqDto(BaseModel):
+    order_id: int

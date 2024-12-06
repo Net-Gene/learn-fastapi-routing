@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 
-from custom_exceptions.username_taken_exception import UsernameTakenException
+from custom_exceptions.taken_exception import TakenException
 from dependencies import LoggedInUser, require_admin
 from dtos.users import UpdateUserDto, UserDto, AddUserReq, LoginReqDto, LoginResDto
 from mapper.mapper import ResponseMapper
@@ -47,7 +47,7 @@ async def get_user(user_id: int, service: UserService, mapper: ResponseMapper):
     user = service.get_by_id(user_id)
 
     if user is None:
-        raise UsernameTakenException()
+        raise TakenException()
 
     return mapper.map('user_dto', user)
 
@@ -56,5 +56,5 @@ async def get_user(user_id: int, service: UserService, mapper: ResponseMapper):
 async def update_user(user_id: int, service: UserService, req_data: UpdateUserDto, mapper: ResponseMapper) -> UserDto:
     user = service.update_user(user_id, req_data)
     if user is None:
-        raise UsernameTakenException()
+        raise TakenException()
     return mapper.map('user_dto', user)

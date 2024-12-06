@@ -5,7 +5,7 @@ import bcrypt
 
 import models
 from custom_exceptions.not_found_exception import NotFoundException
-from custom_exceptions.username_taken_exception import UsernameTakenException
+from custom_exceptions.taken_exception import TakenException
 from dtos.users import UpdateUserDto, AddUserReq, LoginReqDto
 from services.user_service_base import UserServiceBase
 from tools.token_tool_base import TokenToolBase
@@ -37,7 +37,7 @@ class UserSaService(UserServiceBase):
         if user_exists is not None:
             # tätä exception tyyppiä meillä ei vielä ole
 
-            raise UsernameTakenException('username already taken')
+            raise TakenException('username already taken')
         user = models.Users(
             UserName=req.username,
             HashedPassword=bcrypt.hashpw(req.password.encode('utf-8'), bcrypt.gensalt()),
