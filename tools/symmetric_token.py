@@ -12,6 +12,6 @@ class SymmetricToken(TokenToolBase):
         return jwt.decode(token_str, key='supersecret', algorithms=['HS512'])
 
     def create_token(self, payload: [str, Any]) -> str:
-        token = jwt.encode(payload, key='supersecret', algorithms=['HS512'])
+        token = jwt.encode(payload, key='supersecret', algorithm='HS512')
 
         return token

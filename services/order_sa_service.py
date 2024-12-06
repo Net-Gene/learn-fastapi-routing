@@ -4,10 +4,11 @@ from typing import List, Dict
 from fastapi import Query, HTTPException
 from sqlalchemy import func
 
+from custom_exceptions.forbidden_exception import ForbiddenException
 from custom_exceptions.missing_field_exception import MissingFieldException
 from custom_exceptions.not_found_exception import NotFoundException
 from models import Orders, Db, OrdersProducts, Products
-from dtos.orders import UpdateOrderDto, OrderReqDto, DeleteOrderReqDto
+from dtos.orders import UpdateOrderReqDto, OrderReqDto, DeleteOrderReqDto
 from services.order_service_base import OrderServiceBase
 
 
@@ -39,6 +40,7 @@ class OrderSaService(OrderServiceBase):
 
     def add_to(self, req: OrderReqDto) -> Orders:
         # Vahvista syötteet
+
         if not req.product_id or not req.quantity or not req.user_id:
             raise MissingFieldException()
         if req.quantity <= 0:
@@ -49,23 +51,28 @@ class OrderSaService(OrderServiceBase):
         with self.context.begin():  # Aloita tapahtuma
 
             try:
-                # Create a new order for the user
+                # Luo käyttäjälle uusi tilaus
+
                 print("Luodaan uusi tilaus...")
                 order = Orders(
                     CustomerId=req.user_id,
                     CreatedDate=datetime.utcnow().isoformat(),
-                    State="Pending",  # Make sure to set the state as "Pending"
+                    State="Pending",  # Muista asettaa tilaksi "Odottaa"
+
                 )
                 self.context.add(order)
                 self.context.flush()  # Varmista, että tilaustunnus on luotu
+
                 print(f"Uusi tilaus luotu: {order}")
 
                 # Vahvista tuotteen olemassaolo
+
                 product = self.context.query(Products).filter(Products.Id == req.product_id).first()
                 if not product:
                     raise NotFoundException()
 
                 # Tarkista, onko tuote jo tilauksessa
+
                 existing_order_product = (
                     self.context.query(OrdersProducts)
                     .filter(
@@ -77,10 +84,12 @@ class OrderSaService(OrderServiceBase):
 
                 if existing_order_product:
                     # Päivitä nykyisen merkinnän yksikkömäärä
+
                     existing_order_product.UnitCount += req.quantity
                     print(f"Päivitetty olemassa oleva tuote järjestyksessä: {existing_order_product}")
                 else:
                     # Lisää uusi tuote OrdersProductsiin
+
                     order_product = OrdersProducts(
                         OrderId=order.Id,
                         ProductId=req.product_id,
@@ -91,6 +100,7 @@ class OrderSaService(OrderServiceBase):
                     print(f"Lisätty uusi tuote tilaukseen: {order_product}")
 
                 # Laske tilauksen päivitetty kokonaishinta
+
                 total_price = (
                     self.context.query(OrdersProducts)
                     .filter(OrdersProducts.OrderId == order.Id)
@@ -101,7 +111,8 @@ class OrderSaService(OrderServiceBase):
                 )
                 print(f"Laskettu kokonaishinta: {total_price}")
 
-                # Commit the changes
+                # Sitoudu muutokset
+
                 self.context.commit()
 
             except Exception as e:
@@ -110,6 +121,7 @@ class OrderSaService(OrderServiceBase):
                 raise e
 
         # Palauta päivitetty tilaus kokonaishinnalla (laskettu ulkoisesti)
+
         order.TotalPrice = total_price
         return order
 
@@ -119,6 +131,7 @@ class OrderSaService(OrderServiceBase):
         """
         try:
             # Hae kaikki asiaan liittyvät orderProducts
+
             order_products = (
                 self.context.query(OrdersProducts)
                 .filter(OrdersProducts.OrderId == order_id)
@@ -131,11 +144,14 @@ class OrderSaService(OrderServiceBase):
                 raise NotFoundException("Vastaavia tilaustuotteita ei löytynyt.")
 
             # Poista kaikki orderProducts tilauksesta
+
             for order_product in order_products:
-                print(f"Deleting order_product with id: {order_product.OrderId}")  # Log the deletion
+                print(f"Deleting order_product with id: {order_product.OrderId}")  # Kirjaa poisto
+
                 self.context.delete(order_product)
 
             # Päivitä RemovedDate ja State Orders-taulukossa
+
             order = (
                 self.context.query(Orders)
                 .filter(Orders.Id == order_id)
@@ -149,31 +165,56 @@ class OrderSaService(OrderServiceBase):
             order.RemovedDate = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             order.State = "Removed"
             order.HandlerId = user.Id
-            # Commit all changes at once
+            # Tee kaikki muutokset kerralla
+
             self.context.commit()
 
             return {"Viesti": f"Tilaus, jonka id on {order_id}, on poistettu."}
 
         except NotFoundException as e:
-            # Handle specific exceptions like NotFoundException
-            print(f"Error: {e}")
-            raise HTTPException(status_code=404, detail=str(e))
+            # Käsittele erityisiä poikkeuksia, kuten NotFoundException
+
+            print(f"Virhe: {e}")
+            raise NotFoundException()
 
         except ValueError as e:
-            # Handle ValueError exceptions
+            # Käsittele ValueError-poikkeuksia
+
             print(f"ValueError: {e}")
             raise HTTPException(status_code=400, detail="Invalid data provided.")
 
         except Exception as e:
-            # General exception handling with more logging
-            print(f"Unexpected error: {e}")
+            # Yleinen poikkeuskäsittely enemmän kirjaamalla
+
+            print(f"Odottamaton virhe: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
-    def update_order(self, order_id: int, req_data: UpdateOrderDto):
-        order = self.context.query(Orders).filter(Orders.Id == order_id).first()
+    def update_order(self, order_id: int, req: UpdateOrderReqDto, user):
+        # Hae tilaus tarkistaaksesi, onko se olemassa ja kuuluuko se kirjautuneelle käyttäjälle
 
-        if order is None:
-            return None
-        order.OrderName = req_data.ordername
+        order = (
+            self.context.query(Orders)
+            .filter(Orders.Id == order_id)
+            .first()
+        )
+        if not order:
+            raise NotFoundException()
+
+        # Tarkista, kuuluuko tilaus sisäänkirjautuneelle käyttäjälle
+
+        if order.CustomerId != user.Id:
+            raise ForbiddenException()
+
+        order_product = (
+            self.context.query(OrdersProducts)
+            .filter(OrdersProducts.OrderId == order_id, OrdersProducts.ProductId == req.product_id)
+            .first()
+        )
+        if not order_product:
+            raise NotFoundException()  # Jos tilattua tuotetta ei ole olemassa
+
+        order_product.UnitCount = req.unit_count
         self.context.commit()
-        return order
+
+        return {"message": "Tuotteen määrän päivitys onnistui", "order_id": order_id,
+                "product_id": req.product_id, "unit_count": req.unit_count}

@@ -1,6 +1,6 @@
 import abc
 
-from dtos.orders import UpdateOrderDto, OrderReqDto
+from dtos.orders import UpdateOrderReqDto, OrderReqDto
 from tools.token_tool_base import TokenToolBase
 
 
@@ -10,14 +10,14 @@ class OrderServiceBase(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def add_to(self, req: OrderReqDto):
+    def add_to(self, req: OrderReqDto, user):
         raise NotImplementedError()
 
-    def delete(self, order_id, user):
+    def delete(self, order_id: int, user):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def update_order(self, order_id: int, req_data: UpdateOrderDto):
+    def update_order(self, order_id: int, req: UpdateOrderReqDto, user):
         raise NotImplementedError()
 
 
