@@ -28,3 +28,6 @@ class OrderServiceBase(abc.ABC):
     def confirm_order(self, order_id: int, user):
         raise NotImplementedError()
 
+    def delete_order(self, order_id: int, user):
+        raise NotImplementedError()
+

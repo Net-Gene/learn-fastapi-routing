@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from starlette.requests import Request
 
-from controllers import categories, products, users, orders, carts
+from controllers import categories, products, users, orders, carts, accounts
 from custom_exceptions.forbidden_exception import ForbiddenException
 from custom_exceptions.general_exception import GeneralException
 from custom_exceptions.not_found_exception import NotFoundException
@@ -51,3 +51,5 @@ app.include_router(categories.router)
 app.include_router(orders.router)
 
 app.include_router(carts.router)
+
+app.include_router(accounts.router)
