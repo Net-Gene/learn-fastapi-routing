@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Depends
 
-from dependencies import oauth2_scheme, LoggedInUser
+from dependencies import oauth2_scheme, LoggedInUser, Admin
 from dtos.orders import UpdateOrderReqDto, DeleteOrderReqDto, OrderingReqDto
 from mapper.mapper import ResponseMapper
 from services.service_factory import ProductService, OrderService
@@ -19,12 +19,11 @@ async def ordering_product_in_cart(service: OrderService, req: OrderingReqDto,
     return result
 
 
-@router.get('/confirm')
+@router.post('/{order_id}/confirm', dependencies=[Depends(Admin)])
 @version(1, 0)
 async def confirm_orders(service: OrderService,
-                         mapper: ResponseMapper,
-                         page: int = Query(1, alias='page', ge=1)  # Oletusarvo on 1, ja sivun on oltava >= 1 kooltaan
-                         ):
-    products = service.get_all(page)
+                         order_id: int,
+                         account: LoggedInUser):
+    result = service.confirm_order(order_id, account)
 
-    return mapper.map('product_dto', products)
+    return result

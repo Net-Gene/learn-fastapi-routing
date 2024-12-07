@@ -24,4 +24,7 @@ class OrderServiceBase(abc.ABC):
     def order(self, req: OrderingReqDto, user):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def confirm_order(self, order_id: int, user):
+        raise NotImplementedError()
 

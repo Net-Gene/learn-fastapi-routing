@@ -145,22 +145,27 @@ class OrderSaService(OrderServiceBase):
             # Poista kaikki orderProducts tilauksesta
 
             for order_product in order_products:
-                print(f"Deleting order_product with id: {order_product.OrderId}")  # Kirjaa poisto
+                print(f"Poistetaan tilaustuote, jonka tunnus on: {order_product.OrderId}")
 
                 self.context.delete(order_product)
 
-            # Päivitä RemovedDate ja State Orders-taulukossa
+            # Päivitä RemovedDate, HandlerId ja State Orders-taulukossa
 
             order = (
                 self.context.query(Orders)
                 .filter(Orders.Id == order_id)
                 .first()
             )
+            if order.CustomerId != user.Id:
+                raise ForbiddenException("Tilaus ei ole sinun.")
+
+            if order.State == "Confirmed":
+                raise ForbiddenException("Tilaus on jo vahvistettu.")
 
             if not order:
                 raise NotFoundException("Tilausta ei löytynyt.")
 
-            print(f"Updating RemovedDate ja State for order with id: {order_id}")
+            print(f"Päivitetään RemovedDate, HandlerId ja State tilaukselle, jonka tunnus on: {order_id}")
             order.RemovedDate = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             order.State = "Removed"
             order.HandlerId = user.Id
@@ -176,47 +181,52 @@ class OrderSaService(OrderServiceBase):
             print(f"Virhe: {e}")
             raise NotFoundException()
 
-        except ValueError as e:
-            # Käsittele ValueError-poikkeuksia
+        except ForbiddenException as e:
+            # Käsittele erityisiä poikkeuksia, kuten ForbiddenException
 
-            print(f"ValueError: {e}")
-            raise TakenException("Invalid data provided.")
-
-        except Exception as e:
-            # Yleinen poikkeuskäsittely enemmän kirjaamalla
-
-            print(f"Odottamaton virhe: {e}")
-            raise GeneralException()
+            print(f"Virhe: {e}")
+            raise ForbiddenException()
 
     def update_order(self, order_id: int, req: UpdateOrderReqDto, user):
         # Hae tilaus tarkistaaksesi, onko se olemassa ja kuuluuko se kirjautuneelle käyttäjälle
+        try:
+            order = (
+                self.context.query(Orders)
+                .filter(Orders.Id == order_id)
+                .first()
+            )
+            if not order:
+                raise NotFoundException("Tilausta ei löytynyt.")
 
-        order = (
-            self.context.query(Orders)
-            .filter(Orders.Id == order_id)
-            .first()
-        )
-        if not order:
+            # Tarkista, kuuluuko tilaus sisäänkirjautuneelle käyttäjälle
+
+            if order.CustomerId != user.Id:
+                raise ForbiddenException("Tilaus ei ole sinun.")
+
+            order_product = (
+                self.context.query(OrdersProducts)
+                .filter(OrdersProducts.OrderId == order_id, OrdersProducts.ProductId == req.product_id)
+                .first()
+            )
+            if not order_product:
+                raise NotFoundException("Tilattua tuotetta ei löytynyt.")  # Jos tilattua tuotetta ei ole olemassa
+
+            order_product.UnitCount = req.unit_count
+            self.context.commit()
+
+            return {"message": "Tuotteen määrän päivitys onnistui", "order_id": order_id,
+                    "product_id": req.product_id, "unit_count": req.unit_count}
+        except NotFoundException as e:
+            # Käsittele erityisiä poikkeuksia, kuten NotFoundException
+
+            print(f"Virhe: {e}")
             raise NotFoundException()
 
-        # Tarkista, kuuluuko tilaus sisäänkirjautuneelle käyttäjälle
+        except ForbiddenException as e:
+            # Käsittele erityisiä poikkeuksia, kuten ForbiddenException
 
-        if order.CustomerId != user.Id:
+            print(f"Virhe: {e}")
             raise ForbiddenException()
-
-        order_product = (
-            self.context.query(OrdersProducts)
-            .filter(OrdersProducts.OrderId == order_id, OrdersProducts.ProductId == req.product_id)
-            .first()
-        )
-        if not order_product:
-            raise NotFoundException()  # Jos tilattua tuotetta ei ole olemassa
-
-        order_product.UnitCount = req.unit_count
-        self.context.commit()
-
-        return {"message": "Tuotteen määrän päivitys onnistui", "order_id": order_id,
-                "product_id": req.product_id, "unit_count": req.unit_count}
 
     def order(self, req: OrderingReqDto, user) -> dict[str, str]:
         """
@@ -243,16 +253,16 @@ class OrderSaService(OrderServiceBase):
             )
 
             if order.CustomerId != user.Id:
-                raise ForbiddenException()
+                raise ForbiddenException("Tilaus ei ole sinun.")
 
             # Poista kaikki orderProducts tilauksesta
 
             for order_product in order_products:
-                print(f"Deleting order_product with id: {order_product.OrderId}")  # Kirjaa poisto
+                print(f"Poistetaan tilaustuote, jonka tunnus on: {order_product.OrderId}")
 
                 self.context.delete(order_product)
 
-            # Päivitä RemovedDate ja State Orders-taulukossa
+            # Päivitä State Orders-taulukossa
 
             order = (
                 self.context.query(Orders)
@@ -263,10 +273,8 @@ class OrderSaService(OrderServiceBase):
             if not order:
                 raise NotFoundException("Tilausta ei löytynyt.")
 
-            print(f"Updating RemovedDate ja State for order with id: {req.order_id}")
-            order.ConfirmedDate = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f"Updating State for order with id: {req.order_id}")
             order.State = "Ordered"
-            order.HandlerId = user.Id
 
             # Tee kaikki muutokset kerralla
 
@@ -274,20 +282,71 @@ class OrderSaService(OrderServiceBase):
 
             return {"Viesti": f"Tilaus, jonka id on {req.order_id}, on tilattu."}
 
+
         except NotFoundException as e:
+
             # Käsittele erityisiä poikkeuksia, kuten NotFoundException
 
             print(f"Virhe: {e}")
+
             raise NotFoundException()
 
-        except ValueError as e:
-            # Käsittele ValueError-poikkeuksia
 
-            print(f"ValueError: {e}")
-            raise TakenException("Invalid data provided.")
+        except ForbiddenException as e:
 
-        except Exception as e:
-            # Yleinen poikkeuskäsittely enemmän kirjaamalla
+            # Käsittele erityisiä poikkeuksia, kuten ForbiddenException
 
-            print(f"Odottamaton virhe: {e}")
-            raise GeneralException()
+            print(f"Virhe: {e}")
+
+            raise ForbiddenException()
+
+    def confirm_order(self, order_id: int, user) -> dict[str, str]:
+        """
+        Ostoskorin tavaroiden "tilaaminen"
+        """
+        try:
+            # Hae kaikki asiaan liittyvät orderProducts
+
+            order = (
+                self.context.query(Orders)
+                .filter(Orders.Id == order_id)
+                .first()
+            )
+
+            if order.CustomerId != user.Id:
+                raise ForbiddenException("Tilaus ei ole sinun.")
+
+            # Päivitä ConfirmedDate, HandlerId ja State Orders-taulukossa
+
+            if not order:
+                raise NotFoundException("Tilausta ei löytynyt.")
+
+            print(f"Päivitetään ConfirmedDate, HandlerId ja State tilaukselle, jonka tunnus on: {order_id}")
+            order.ConfirmedDate = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            order.State = "Confirmed"
+            order.HandlerId = user.Id
+
+            # Tee kaikki muutokset kerralla
+
+            self.context.commit()
+
+            return {"Viesti": f"Tilaus, jonka id on {order_id}, on vahvistettu."}
+
+
+        except NotFoundException as e:
+
+            # Käsittele erityisiä poikkeuksia, kuten NotFoundException
+
+            print(f"Virhe: {e}")
+
+            raise NotFoundException()
+
+
+
+        except ForbiddenException as e:
+
+            # Käsittele erityisiä poikkeuksia, kuten ForbiddenException
+
+            print(f"Virhe: {e}")
+
+            raise ForbiddenException()
