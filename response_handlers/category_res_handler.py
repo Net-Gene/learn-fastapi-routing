@@ -9,7 +9,8 @@ from models import Categories
 
 class CategoryResHandler:
     def send(self, category):
-        return Categories(id=category.Id, name=category.Name, unit_price=category.UnitPrice,  description=category.Description)
+        return Categories(id=category.Id, name=category.Name,
+                          description=category.Description)
 
 
 def init_category_response_handler():

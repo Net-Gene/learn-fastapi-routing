@@ -11,3 +11,14 @@ class CategoryDto(BaseModel):
 
     # Tämä on tuoteluettelo, ja se on valinnainen
     products: Optional[List[ProductDto]] = None
+
+
+class CategoryDtoRes(BaseModel):
+    id: int
+    name: str
+    description: str
+
+
+class AddCategoryDtoReq(BaseModel):
+    name: str
+    description: str

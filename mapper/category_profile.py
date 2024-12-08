@@ -28,13 +28,12 @@ class CategoryProfile(BaseProfile):
             items.append(self.dst_type(**significant_vars))
         return items
 
-
     def _get_significant_vars(self, data):
         # Tarkista, onko "data" sanakirja
         if isinstance(data, dict):
             # Suodata pois avaimet, jotka alkavat '_sa_instance_state'
             return {key: value for key, value in data.items() if not key.startswith('_sa_instance_state')}
-        
+
         # Jos se ei ole sanakirja, käsittele SQLAlchemy-ilmentymä tai muu olio
         def _pascal_to_snake_case(pascal_str: str) -> str:
             return ''.join(['_' + c.lower() if c.isupper() else c for c in pascal_str]).lstrip('_')
@@ -55,6 +54,3 @@ class CategoryProfile(BaseProfile):
                     significant_vars[snake_case_key] = value
 
         return significant_vars
-
-
-

@@ -1,6 +1,8 @@
 from typing import List
 
 from fastapi import Query
+
+from custom_exceptions.not_found_exception import NotFoundException
 from models import Products
 import models
 from services.product_service_base import ProductServiceBase
@@ -12,22 +14,30 @@ class ProductSaService(ProductServiceBase):
 
     def get_all(self, page) -> List[Products]:
         """
-        Hae tuotteet sivutus-ja hakutoiminnoilla.
+        Hae tuotteet sivutus- ja hakutoiminnoilla.
         
         :param page: Sivunumero (alkaen 1:stä).
-        :param page_size: Tuotteiden määrä sivua kohden (oletus 2).
-        :param-haku: merkkijono, jonka avulla voit etsiä tuotteita nimellä (valinnainen).
         :return: Luettelo määritetyn sivun tuotteista.
         """
+        try:
+            # Rakenna peruskysely
 
-        # Rakenna peruskysely
+            query: Query = self.context.query(Products)
 
-        query: Query = self.context.query(Products)
+            # Toteuta sivutus
 
-        # Toteuta sivutus
+            query = query.offset((page - 1) * 2).limit(2)
 
-        query = query.offset((page - 1) * 2).limit(2)
+            # Suorita kysely ja palauta tulokset
+            result = query.all()
 
-        # Suorita kysely ja palauta tulokset
+            if result is None:
+                raise NotFoundException('Tuotteita ei löydetty')
 
-        return query.all()
+            return result
+
+        except NotFoundException as e:
+            # Käsittele erityisiä poikkeuksia, kuten NotFoundException
+
+            print(f"Virhe: {e}")
+            raise NotFoundException(e)

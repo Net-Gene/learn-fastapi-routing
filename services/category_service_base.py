@@ -1,5 +1,3 @@
-
-
 import abc
 
 
@@ -9,5 +7,8 @@ class CategoryServiceBase(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_all_categories_with_products(self):
-            raise NotImplementedError()
+    def get_all_categories_with_products(self, page: int, category_id: int):
+        raise NotImplementedError()
+
+    def add(self, req, user):
+        raise NotImplementedError()

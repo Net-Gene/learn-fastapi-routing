@@ -1,9 +1,10 @@
-from typing import List
-from unittest import skip
+from typing import List, Dict, Any
 
-from fastapi import Query
-from models import Categories, Products
 import models
+from custom_exceptions.not_found_exception import NotFoundException
+from custom_exceptions.taken_exception import TakenException
+from dtos.categories import AddCategoryDtoReq
+from models import Categories, Products
 from services.category_service_base import CategoryServiceBase
 
 
@@ -11,27 +12,46 @@ class CategorySaService(CategoryServiceBase):
     def __init__(self, context: models.Db):
         self.context = context
 
-    def get_all(self) -> List[Categories]:
-        return self.context.query(Categories).all()
-    
-    def get_all_categories_with_products(self, page: int) -> List[Categories]:
-        # Sivuparametria käytetään tuotteiden sivuttamiseen, ei itse luokkiin
+    def get_all(self) -> List[Dict[str, Any]]:
+        categories = (self.context
+                      .query(Categories)
+                      .all())
+        categories_dict = [
+            {
+                "Id": category.Id,
+                "Name": category.Name,
+                "Description": category.Description,
+            }
+            for category in categories
+        ]
+        return categories_dict
 
-        skip = (page - 1) * 2  # Laske tuotteiden offset
+    def get_all_categories_with_products(self, page: int, category_id: int) -> List[Dict[str, Any]]:
+        try:
+            # Sivuparametria käytetään tuotteiden sivuttamiseen, ei itse luokkiin
 
+            _skip = (page - 1) * 2  # Laske tuotteiden offset
 
-        # Hae kaikki luokat (ei luokkien sivutusta)
+            # Hae luokka, jonka id on sama kuin category_id
 
-        categories = self.context.query(Categories).all()
+            category = (
+                self.context.query(Categories)
+                .filter(Categories.Id == category_id)
+                .first()
+            )
+            if category is None:
+                raise NotFoundException(f"Kategoriaa, jonka id olisi ${category_id} ei löydetty")
 
-        categories_with_products = []
+            category_with_products = []
 
-        for category in categories:
             # Sivuttele kunkin luokan tuotteet (enintään 2 tuotetta sivulla)
 
-            products = self.context.query(Products).filter(Products.CategoryId == category.Id).offset(skip).limit(2).all()
+            products = self.context.query(Products).filter(Products.CategoryId == category.Id).offset(_skip).limit(
+                2).all()
+            if not products:  # Tarkista, onko tulos tyhjä
+                raise NotFoundException(f"Tuotteita ei löytynyt kategoriasta")
 
-            categories_with_products.append(
+            category_with_products.append(
                 {
                     "id": category.Id,
                     "name": category.Name,
@@ -48,5 +68,33 @@ class CategorySaService(CategoryServiceBase):
                 }
             )
 
-        return categories_with_products
+            return category_with_products
 
+        except NotFoundException as e:
+            # Käsittele erityisiä poikkeuksia, kuten TakenException
+
+            print(f"Virhe: {e}")
+            raise NotFoundException(e)
+
+    def add(self, req: AddCategoryDtoReq, user) -> Categories:
+        try:
+            category_exists = self.context.query(Categories).filter(Categories.Name == req.name).first()
+
+            if category_exists is not None:
+                raise TakenException('Luokan nimi on jo varattu')
+
+            category = Categories(
+                Name=req.name,
+                Description=req.description,
+                UserId=user.Id
+            )
+
+            self.context.add(category)
+            self.context.commit()
+            return category
+
+        except TakenException as e:
+            # Käsittele erityisiä poikkeuksia, kuten TakenException
+
+            print(f"Virhe: {e}")
+            raise TakenException(e)
