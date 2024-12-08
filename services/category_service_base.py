@@ -1,5 +1,7 @@
 import abc
 
+from dtos.categories import UpdateCategoryDtoReq
+
 
 class CategoryServiceBase(abc.ABC):
     @abc.abstractmethod
@@ -11,4 +13,7 @@ class CategoryServiceBase(abc.ABC):
         raise NotImplementedError()
 
     def add(self, req, user):
+        raise NotImplementedError()
+
+    def update(self, req: UpdateCategoryDtoReq, category_id: int):
         raise NotImplementedError()

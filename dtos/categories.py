@@ -22,3 +22,8 @@ class CategoryDtoRes(BaseModel):
 class AddCategoryDtoReq(BaseModel):
     name: str
     description: str
+
+
+class UpdateCategoryDtoReq(BaseModel):
+    name: str
+    description: str

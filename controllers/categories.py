@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Query, Depends
 from fastapi_versioning import version
 
-from dependencies import oauth2_scheme, LoggedInUser
-from dtos.categories import CategoryDto, AddCategoryDtoReq, CategoryDtoRes
+from dependencies import oauth2_scheme, LoggedInUser, Admin
+from dtos.categories import CategoryDto, AddCategoryDtoReq, CategoryDtoRes, UpdateCategoryDtoReq
 from mapper.mapper import ResponseMapper
 from services.service_factory import CategoryService
 
@@ -29,9 +29,23 @@ async def get_categories_with_products(
     return result
 
 
-@router.post('/', dependencies=[Depends(oauth2_scheme)])
+@router.post('/',
+             dependencies=[Depends(Admin)]
+             )
 async def add_category(service: CategoryService, mapper: ResponseMapper, req: AddCategoryDtoReq,
                        account: LoggedInUser) -> CategoryDto:
     categories = service.add(req, account)
 
     return mapper.map('category_dto', categories)
+
+
+@router.post('/{category_id}',
+             dependencies=[Depends(Admin)]
+             )
+async def update_category(service: CategoryService,
+                          mapper: ResponseMapper,
+                          category_id: int,
+                          req: UpdateCategoryDtoReq):
+    result = service.update(req, category_id)
+
+    return result

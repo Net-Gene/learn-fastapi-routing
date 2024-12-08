@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 
 from custom_exceptions.taken_exception import TakenException
-from dependencies import LoggedInUser, require_admin
+from dependencies import LoggedInUser, Admin
 from dtos.users import UpdateUserDto, UserDto, AddUserReq, LoginReqDto, LoginResDto
 from mapper.mapper import ResponseMapper
 from services.service_factory import UserService
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/users", tags=['users'])
 
 @router.get('/',
             # Vain admin voi käyttää tätä routea, jos tämä rivi on aktiivinen
-            # dependencies=[Depends(require_admin)]
+            # dependencies=[Depends(Admin)]
             # Vain kirjautunut voi käyttää tätä routea, jos tämä rivi on aktiivinen
             # dependencies=[Depends(oauth2_scheme)]
             )

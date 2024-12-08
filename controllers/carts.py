@@ -23,7 +23,9 @@ async def show_cart(service: OrderService,
 
 @router.post('/items', dependencies=[Depends(oauth2_scheme)])
 @version(1, 0)
-async def add_to_cart(service: OrderService, mapper: ResponseMapper, req: OrderReqDto):
+async def add_to_cart(service: OrderService,
+                      mapper: ResponseMapper,
+                      req: OrderReqDto):
     order = service.add_to(req)
 
     return mapper.map('order_dto', order)
@@ -31,7 +33,9 @@ async def add_to_cart(service: OrderService, mapper: ResponseMapper, req: OrderR
 
 @router.delete('/items/{itemid}', dependencies=[Depends(oauth2_scheme)])
 @version(1, 0)
-async def delete_from_cart(service: OrderService, itemid: int, account: LoggedInUser):
+async def delete_from_cart(service: OrderService,
+                           itemid: int,
+                           account: LoggedInUser):
     result = service.delete(itemid, account)
 
     return result
@@ -39,7 +43,10 @@ async def delete_from_cart(service: OrderService, itemid: int, account: LoggedIn
 
 @router.patch('/items/{itemid}', dependencies=[Depends(oauth2_scheme)])
 @version(1, 0)
-async def update_product_in_cart(service: OrderService, itemid: int, req: UpdateOrderReqDto, account: LoggedInUser):
+async def update_product_in_cart(service: OrderService,
+                                 itemid: int,
+                                 req: UpdateOrderReqDto,
+                                 account: LoggedInUser):
     result = service.update_order(itemid, req, account)
 
     return result

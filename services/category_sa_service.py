@@ -1,9 +1,10 @@
 from typing import List, Dict, Any
 
 import models
+from custom_exceptions.forbidden_exception import ForbiddenException
 from custom_exceptions.not_found_exception import NotFoundException
 from custom_exceptions.taken_exception import TakenException
-from dtos.categories import AddCategoryDtoReq
+from dtos.categories import AddCategoryDtoReq, UpdateCategoryDtoReq
 from models import Categories, Products
 from services.category_service_base import CategoryServiceBase
 
@@ -98,3 +99,45 @@ class CategorySaService(CategoryServiceBase):
 
             print(f"Virhe: {e}")
             raise TakenException(e)
+
+    def update(self, req: UpdateCategoryDtoReq, category_id: int):
+        # Hae kategoria tarkistaaksesi, onko se olemassa ja kuuluuko se kirjautuneelle käyttäjälle
+        try:
+            print("category_id =", category_id)
+            category = (
+                self.context.query(Categories)
+                .filter(Categories.Id == category_id)
+                .first()
+            )
+            category_with_same_name = (
+                self.context.query(Categories)
+                .filter(Categories.Name == req.name)
+                .first()
+            )
+            if not category:
+                raise NotFoundException("Kategoriaa ei löytynyt.")
+
+            if category_with_same_name is not None:
+                raise ForbiddenException("Kategorian nimi on jo varattu.")
+
+            category.Name = req.name
+            category.Description = req.description
+
+            self.context.commit()
+
+            return {"message": "Kategorian nimi ja kuvaus päivitys onnistui",
+                    "category_id": category_id,
+                    "Uusi nimi kategorialle": req.name,
+                    "Uusi kuvaus kategorialle": req.description}
+
+        except NotFoundException as e:
+            # Käsittele erityisiä poikkeuksia, kuten NotFoundException
+            print(f"Virhe: {e}")
+
+            raise NotFoundException(e)
+
+        except ForbiddenException as e:
+            # Käsittele erityisiä poikkeuksia, kuten ForbiddenException
+            print(f"Virhe: {e}")
+
+            raise ForbiddenException(e)
