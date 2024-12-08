@@ -141,3 +141,35 @@ class CategorySaService(CategoryServiceBase):
             print(f"Virhe: {e}")
 
             raise ForbiddenException(e)
+        
+    def delete(self, category_id: int) -> dict[str, str]:
+        """
+        Kategorian poisto, id:n perusteella.
+        """
+        try:
+
+            category = (
+                self.context.query(Categories)
+                .filter(Categories.Id == category_id)
+                .first()
+            )
+
+            if not category:
+                raise NotFoundException("Kategoriaa ei löytynyt.")
+
+            print(f"Poistetaan kategoria, jonka tunnus on: {category.Id}")
+
+            self.context.delete(category)
+
+            # Tee kaikki muutokset kerralla
+            self.context.commit()
+
+            return {"Viesti": f"Kategoria, jonka id on {category_id}, on poistettu."}
+
+        except NotFoundException as e:
+
+            # Käsittele erityisiä poikkeuksia, kuten NotFoundException
+            print(f"Virhe: {e}")
+
+            raise NotFoundException(e)
+

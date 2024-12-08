@@ -17,3 +17,6 @@ class CategoryServiceBase(abc.ABC):
 
     def update(self, req: UpdateCategoryDtoReq, category_id: int):
         raise NotImplementedError()
+
+    def delete(self, category_id: int):
+        raise NotImplementedError()

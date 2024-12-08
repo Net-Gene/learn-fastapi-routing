@@ -20,9 +20,9 @@ async def get_categories(service: CategoryService):
 @version(1, 0)
 async def get_categories_with_products(
         service: CategoryService,
-        mapper: ResponseMapper,
-        category_id: int,  # Polkuparametri: luokan tunnus
-        page: int = Query(1, alias='page', ge=1),  # Query parameter: page (default to 1, must be >= 1)
+        category_id: int,
+        # Kyselyparametri: sivu (oletusarvo 1, täytyy olla >= 1)
+        page: int = Query(1, alias='page', ge=1),
 ):
     result = service.get_all_categories_with_products(page, category_id)
 
@@ -32,7 +32,9 @@ async def get_categories_with_products(
 @router.post('/',
              dependencies=[Depends(Admin)]
              )
-async def add_category(service: CategoryService, mapper: ResponseMapper, req: AddCategoryDtoReq,
+async def add_category(service: CategoryService,
+                       mapper: ResponseMapper,
+                       req: AddCategoryDtoReq,
                        account: LoggedInUser) -> CategoryDto:
     categories = service.add(req, account)
 
@@ -43,9 +45,18 @@ async def add_category(service: CategoryService, mapper: ResponseMapper, req: Ad
              dependencies=[Depends(Admin)]
              )
 async def update_category(service: CategoryService,
-                          mapper: ResponseMapper,
                           category_id: int,
                           req: UpdateCategoryDtoReq):
     result = service.update(req, category_id)
+
+    return result
+
+
+@router.delete('/{category_id}',
+               dependencies=[Depends(Admin)]
+               )
+async def delete_category(service: CategoryService,
+                          category_id: int):
+    result = service.delete(category_id)
 
     return result
