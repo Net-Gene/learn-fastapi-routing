@@ -19,11 +19,12 @@ async def ordering_product_in_cart(service: OrderService, req: OrderingReqDto,
     return result
 
 
-@router.post('/{order_id}/confirm', dependencies=[Depends(Admin)])
+@router.post('/{order_id}/confirm', dependencies=[Depends(oauth2_scheme)])
 @version(1, 0)
 async def confirm_orders(service: OrderService,
                          order_id: int,
-                         account: LoggedInUser):
+                         account: LoggedInUser,
+                         admin: Admin):
     result = service.confirm_order(order_id, account)
 
     return result

@@ -1,6 +1,7 @@
 import abc
 
-from dtos.categories import UpdateCategoryDtoReq
+from dtos.categories import UpdateCategoryDtoReq, AddCategoryDtoReq
+from models import Users
 
 
 class CategoryServiceBase(abc.ABC):
@@ -12,7 +13,7 @@ class CategoryServiceBase(abc.ABC):
     def get_all_categories_with_products(self, page: int, category_id: int):
         raise NotImplementedError()
 
-    def add(self, req, user):
+    def add(self, req: AddCategoryDtoReq, user: Users):
         raise NotImplementedError()
 
     def update(self, req: UpdateCategoryDtoReq, category_id: int):

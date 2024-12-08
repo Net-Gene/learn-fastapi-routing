@@ -15,10 +15,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
 
 
 def get_logged_in_user(user_service: UserService, token: AppToken, req: Request) -> models.Users:
+
     token_from_header = req.headers.get('Authorization')
 
     if token_from_header is None:
         raise UnauthorizedException()
+
     header_parts = token_from_header.split(' ')
 
     if len(header_parts) != 2:
@@ -26,20 +28,23 @@ def get_logged_in_user(user_service: UserService, token: AppToken, req: Request)
 
     if header_parts[0] != 'Bearer':
         raise UnauthorizedException()
+
     claims = token.validate_token(header_parts[1])
 
     logged_in_user = user_service.get_by_id(claims['sub'])
 
     if logged_in_user is None:
         raise UnauthorizedException()
+
     return logged_in_user
 
 
 def require_admin(user_service: UserService, token: AppToken, req: Request) -> models.Users:
+
     user = get_logged_in_user(user_service, token, req)
 
     if user.Role != 'admin':
-        raise ForbiddenException()
+        raise ForbiddenException("Only admins allowed to use this route")
     return user
 
 

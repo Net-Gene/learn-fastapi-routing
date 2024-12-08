@@ -77,7 +77,7 @@ class CategorySaService(CategoryServiceBase):
             print(f"Virhe: {e}")
             raise NotFoundException(e)
 
-    def add(self, req: AddCategoryDtoReq, user) -> Categories:
+    def add(self, req: AddCategoryDtoReq, user: models.Users) -> Categories:
         try:
             category_exists = self.context.query(Categories).filter(Categories.Name == req.name).first()
 
